@@ -1,0 +1,24 @@
+/*
+ * Paletas para previsualizar el TPV en Storybook con otro color corporativo (menú «Paleta» de la
+ * barra superior). Solo cambian --brand: el resto de tokens (--brand-soft, --primary, --ring)
+ * salen de él. La paleta de la app es la de globals.css, «Hiperssora».
+ */
+:root[data-palette="azul"] {
+  --brand: #0057d9;
+}
+
+:root[data-palette="verde"] {
+  --brand: #00875a;
+}
+
+:root[data-palette="morado"] {
+  --brand: #6d28d9;
+}
+
+:root[data-palette="naranja"] {
+  --brand: #e85d04;
+}
+
+:root[data-palette="grafito"] {
+  --brand: #27272a;
+}

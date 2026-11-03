@@ -1,0 +1,146 @@
+import { Meta } from "@storybook/addon-docs/blocks"
+
+<Meta title="Introducción" />
+
+# Hiperssora · Guía de componentes del TPV
+
+Catálogo de todos los componentes de la **caja registradora** de Hiperssora: la pantalla que
+usan los cajeros y las cajeras para cobrar a los clientes.
+
+- **Maqueta.** Los componentes son presentacionales: reciben datos por props y exponen
+  callbacks (`onSelect`, `onCharge`…). Lo único conectado es el bloqueo con PIN, el
+  **buscador**, que consulta el catálogo real de [Nutriinfo](https://www.nutriinfo.es), y el
+  **ticket**, al que se encolan los productos buscados, escaneados o elegidos en una sección. En Storybook, el buscador usa datos simulados.
+- **Solo escritorio y pantalla táctil.** No es responsive. Ancho mínimo de 1280 px y áreas
+  táctiles de al menos 56 px.
+- **Modales, nunca desplegables.** En una pantalla táctil, un menú desplegable abierto se
+  cierra o se activa por error con el siguiente toque. Toda elección se hace en un modal con
+  fondo gris, que se cierra con la X, pulsando fuera o eligiendo una opción.
+- **Teclado.** Todo se podrá manejar con atajos (ver _Barra de atajos_).
+
+## La pantalla
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│ PosHeader     Logo                Clock · Clientes en pausa · Cajero │
+├─────────────────────────────────────────────┬────────────────────────┤
+│ TicketPanel (≈70 %)                         │ CheckoutPanel (≈30 %)  │
+│  ┌ ProductSearch ─────────────────────────┐ │  TicketTotal           │
+│  └────────────────────────────────────────┘ │  [ Cobrar ]            │
+│  ┌ TicketList ────────────────────────────┐ │  SelectedLinePanel     │
+│  │ TicketLineRow                          │ │  SectionButtons        │
+│  │ TicketLineRow                          │ │  AddBagButton          │
+│  └────────────────────────────────────────┘ │  TicketActions         │
+├─────────────────────────────────────────────┴────────────────────────┤
+│ ShortcutsBar   Esc Salir · ↑ Anterior · ↓ Siguiente · F1 Cobrar …    │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+Al entrar, la caja está **bloqueada** (ahora, temporalmente, arranca desbloqueada) (`LockScreen`) y da la bienvenida al cajero hasta que
+introduce su PIN. **Bloquear pantalla**, en el modal del cajero, la vuelve a bloquear.
+
+Al tocar el buscador se abre `ProductSearchDialog`, el modal de búsqueda con predictivo. Los
+botones de sección abren `SectionCatalogDialog` a pantalla completa y, al elegir un producto, la
+báscula (`ScaleDialog`) lo pesa antes de añadirlo. La pistola lectora añade
+productos en cualquier momento.
+
+Al pulsar **Cobrar** se abre `PaymentMethodDialog`, que lleva a `CardPaymentDialog` o a
+`CashPaymentDialog`.
+
+## ¿Dónde está cada cosa?
+
+Cada elemento que se ve en la pantalla del TPV, con un enlace a su ficha. Las fichas llevan el
+nombre del componente en el código; el buscador de la barra lateral también encuentra los
+nombres en español ("Bolsa", "Frutería", "Anular compra"…).
+
+| En pantalla                                                          | Ficha                                                                              |
+| -------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Pantalla completa                                                    | [PosApp](?path=/docs/tpv-pantalla-posapp--docs)                                    |
+| Pantalla de bloqueo y PIN                                            | [LockScreen](?path=/docs/tpv-bloqueo-lockscreen--docs)                             |
+| Barra superior                                                       | [PosHeader](?path=/docs/tpv-cabecera-posheader--docs)                              |
+| Hora                                                                 | [Clock](?path=/docs/tpv-cabecera-clock--docs)                                      |
+| Botón **Clientes en pausa** y su modal                               | [PausedTicketsDialog](?path=/docs/tpv-cabecera-pausedticketsdialog--docs)          |
+| Botón del cajero (bloquear / cerrar sesión)                          | [UserDialog](?path=/docs/tpv-cabecera-userdialog--docs)                            |
+| Buscador de la pantalla                                              | [SearchTrigger](?path=/docs/tpv-ticket-buscador-searchtrigger--docs)               |
+| Modal de búsqueda con predictivo                                     | [ProductSearchDialog](?path=/docs/tpv-ticket-buscador-productsearchdialog--docs)   |
+| Resultado del buscador (mismo diseño que una línea del ticket)       | [SearchResultItem](?path=/docs/tpv-ticket-buscador-searchresultitem--docs)         |
+| Listado del ticket                                                   | [TicketList](?path=/docs/tpv-ticket-líneas-ticketlist--docs)                       |
+| Línea del ticket y **todos sus estados** (seleccionada, eliminando…) | [TicketLineRow](?path=/docs/tpv-ticket-líneas-ticketlinerow--docs)                 |
+| Franja − / + / **Eliminar** de la línea seleccionada                 | [TicketLineEditor](?path=/docs/tpv-ticket-líneas-ticketlineeditor--docs)           |
+| Distintivo **+18**                                                   | [AgeBadge](?path=/docs/comunes-agebadge--docs)                                     |
+| Modal **¿El cliente es mayor de 18 años?**                           | [AgeVerificationDialog](?path=/docs/tpv-ticket-avisos-ageverificationdialog--docs) |
+| Aviso _Leyendo código…_ de la pistola, en la cabecera                | [ScanNotice](?path=/docs/tpv-cabecera-scannotice--docs)                            |
+| Modal **Producto no encontrado** (código que no existe o error)      | [ProductNotFoundDialog](?path=/docs/tpv-ticket-avisos-productnotfounddialog--docs) |
+| **Total**                                                            | [TicketTotal](?path=/docs/tpv-panel-de-cobro-tickettotal--docs)                    |
+| Botón **Cobrar** y orden del panel                                   | [CheckoutPanel](?path=/docs/tpv-panel-de-cobro-checkoutpanel--docs)                |
+| Teclado numérico y botón **Cantidad**                                | [Numpad](?path=/docs/tpv-panel-de-cobro-numpad--docs)                              |
+| Zona **Producto seleccionado** (cantidad y teclado plegable)         | [SelectedLinePanel](?path=/docs/tpv-panel-de-cobro-selectedlinepanel--docs)        |
+| Botón **Bolsa** (con contador)                                       | [AddBagButton](?path=/docs/tpv-panel-de-cobro-addbagbutton--docs)                  |
+| Botones **Pausar compra** y **Anular compra**                        | [TicketActions](?path=/docs/tpv-panel-de-cobro-ticketactions--docs)                |
+| Modal **¿Pausar la compra?**                                         | [PauseTicketDialog](?path=/docs/tpv-panel-de-cobro-pauseticketdialog--docs)        |
+| Botones **Frutería**, **Verdulería**, **Panadería**                  | [SectionButtons](?path=/docs/tpv-secciones-sectionbuttons--docs)                   |
+| Catálogo a pantalla completa de una sección                          | [SectionCatalogDialog](?path=/docs/tpv-secciones-sectioncatalogdialog--docs)       |
+| Producto del catálogo de sección                                     | [ProductTile](?path=/docs/tpv-secciones-producttile--docs)                         |
+| **Báscula**                                                          | [ScaleDialog](?path=/docs/tpv-secciones-scaledialog--docs)                         |
+| Modal **¿Anular esta compra?**                                       | [ClearTicketDialog](?path=/docs/tpv-panel-de-cobro-clearticketdialog--docs)        |
+| Flujo de cobro completo                                              | [CheckoutFlow](?path=/docs/tpv-pago-checkoutflow--docs)                            |
+| Forma de pago (tarjeta / efectivo)                                   | [PaymentMethodDialog](?path=/docs/tpv-pago-paymentmethoddialog--docs)              |
+| Pago en efectivo y cambio                                            | [CashPaymentDialog](?path=/docs/tpv-pago-cashpaymentdialog--docs)                  |
+| Datáfono                                                             | [CardPaymentDialog](?path=/docs/tpv-pago-cardpaymentdialog--docs)                  |
+| **Cobro completado**                                                 | [PaymentCompleteDialog](?path=/docs/tpv-pago-paymentcompletedialog--docs)          |
+| Barra de atajos de teclado                                           | [ShortcutsBar](?path=/docs/tpv-barra-de-atajos-shortcutsbar--docs)                 |
+
+> **Todo lo que se ve en pantalla es un componente con su ficha**, por pequeño que sea: un rótulo, un contador, una fila «rótulo … dato», un estado vacío… Las fichas con varias variantes tienen una story **Todos los estados**.
+
+## Secciones de la guía
+
+| Sección                   | Qué contiene                                                                                                                                                                                                                                                                                                                                                         |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Fundamentos**           | Color corporativo, tipografía y tamaños táctiles                                                                                                                                                                                                                                                                                                                     |
+| **TPV / Pantalla**        | `PosScreen` (pantalla completa) y `PosApp` (con estado y bloqueo)                                                                                                                                                                                                                                                                                                    |
+| **TPV / Bloqueo**         | `LockScreen`, `CashierGreeting`, `PinIndicator`, `PinHint`                                                                                                                                                                                                                                                                                                           |
+| **TPV / Cabecera**        | `PosHeader`, `Clock`, `ScanNotice`, `PausedTicketsDialog`, `PausedTicketItem`, `UserDialog`, `CashierIdentity`                                                                                                                                                                                                                                                       |
+| **TPV / Ticket**          | `TicketPanel`. **Buscador:** `SearchTrigger`, `ProductSearch`, `ProductSearchDialog`, `SearchResultItem`, `ProductLabel`. **Líneas:** `TicketList`, `TicketColumnsHeader`, `TicketLineRow`, `TicketLineEditor`, `RemoveLineConfirm`. **Avisos:** `ProductNotFoundDialog`, `ScannedCode`, `AgeVerificationDialog`, `ProductSummary`                                   |
+| **TPV / Panel de cobro**  | `CheckoutPanel`, `TicketTotal`, `ChargeButton`, `TicketActions`, `AddBagButton`, `SelectedLinePanel`, `Numpad`, `NumpadDisplay`, `PauseTicketDialog`, `ClearTicketDialog`                                                                                                                                                                                            |
+| **TPV / Secciones**       | `SectionCatalog`, `SectionButtons`, `SectionButton`, `SectionCatalogDialog`, `ProductTile`, `ScaleDialog`, `ScaleDisplay`, `QuantityDialog`                                                                                                                                                                                                                          |
+| **TPV / Pago**            | `CheckoutFlow`, `PaymentMethodDialog`, `CashPaymentDialog`, `QuickAmounts`, `CardPaymentDialog`, `PaymentCompleteDialog`                                                                                                                                                                                                                                             |
+| **TPV / Barra de atajos** | `ShortcutsBar`                                                                                                                                                                                                                                                                                                                                                       |
+| **Comunes**               | Piezas reutilizables sin lógica del TPV. **Modales:** `Modal`, `ConfirmDialog`. **Datos:** `SummaryRow`, `Eyebrow`, `CountBadge`, `AgeBadge`, `HighlightMatch`. **Superficies:** `OptionCard`, `IconTile`, `EmptyState`, `InfoNote`, `MockupNote`. **Controles:** `SearchField`, `QuantityStepper`, `ShortcutHint`, `HintBar`. **Marca:** `Logo`, `ProductThumbnail` |
+| **UI**                    | Primitivas de [shadcn/ui](https://ui.shadcn.com) sobre las que se construye todo                                                                                                                                                                                                                                                                                     |
+
+## Estructura del código
+
+```
+src/
+├── app/                    # Rutas de Next.js: "/" renderiza PosScreen con datos de ejemplo
+├── components/
+│   ├── ui/                 # Primitivas de shadcn/ui (generadas por la CLI)
+│   ├── common/             # Componentes reutilizables (Logo, ProductThumbnail)
+│   └── pos/                # Componentes del TPV, una carpeta por zona de la pantalla
+│       ├── layout/         # PosScreen, PosApp
+│       ├── lock/           # Pantalla de bloqueo
+│       ├── header/
+│       ├── ticket/
+│       ├── checkout/
+│       ├── sections/       # Frutería, Verdulería, Panadería
+│       ├── payment/
+│       └── shortcuts/
+├── config/               # Atajos de teclado (shortcuts.ts) y PIN de la maqueta (auth.ts)
+├── hooks/                  # Hooks de React (useNow, useProductSearch)
+├── lib/                    # Formato, totales del ticket, búsqueda y cliente de la API de Nutriinfo
+├── mocks/                  # Datos de ejemplo de la maqueta (catálogo, tickets, cajero)
+└── types/pos.ts            # Tipos del dominio: Product, TicketLine, PausedTicket…
+```
+
+## Convenciones
+
+- **Una story por componente**, junto a él (`numpad.tsx` + `numpad.stories.tsx`). El título de la
+  story refleja la zona de la pantalla: `TPV/<Zona>/<Componente>`.
+- **Documentación en el código.** La descripción de cada componente y de cada prop sale de sus
+  comentarios JSDoc, y Storybook la muestra en la pestaña _Docs_.
+- **Componentes sin datos propios.** Reciben todo por props; los datos de ejemplo viven en
+  `src/mocks` y solo los importan las stories y la página.
+- **El formato no se hace en los componentes.** Precios, cantidades y horas pasan por
+  `@/lib/format`, y los totales por `@/lib/ticket`.
+- **Cada carpeta tiene un `index.ts`** que exporta sus componentes:
+  `import { Numpad } from "@/components/pos/checkout"`.

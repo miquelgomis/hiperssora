@@ -1,0 +1,198 @@
+import {
+  ColorItem,
+  ColorPalette,
+  Meta,
+  Typeset,
+} from "@storybook/addon-docs/blocks"
+
+import { Button } from "../../src/components/ui/button"
+
+<Meta title="Fundamentos" />
+
+# Fundamentos
+
+Estética **blanca, limpia y elegante**: fondo blanco, grises muy suaves para estructurar y el
+**rojo corporativo** reservado para la acción principal, la selección y los datos clave.
+
+## Color
+
+Los colores son _tokens_ CSS definidos en `src/app/globals.css` y expuestos a Tailwind
+(`bg-brand`, `text-primary`, `bg-brand-soft`…). Nunca se escriben colores sueltos en los
+componentes.
+
+**Cambiar el color corporativo** es cambiar una línea: `--brand`. De él salen `--primary` (botones
+principales), `--ring` (foco) y `--brand-soft` (su versión muy clara). Los logotipos son imágenes
+y llevan su rojo dentro.
+
+**Probar otro color:** el menú de **paletas** de la barra superior de Storybook (el botón del pincel, que muestra la paleta activa: _Hiperssora_) cambia `--brand` en todas las fichas a la vez. Las muestras de esta página
+también cambian. Las paletas están en `.storybook/palettes.css`.
+
+**Dos rojos distintos.** El **corporativo** (`brand`) es el de la marca: la acción principal, la
+selección y los datos clave. El de **peligro** (`destructive`) es más oscuro y solo avisa de que
+algo se borra o ha fallado. No se mezclan: el de peligro sigue siendo rojo aunque cambie el color
+corporativo.
+
+### Corporativo
+
+<ColorPalette>
+  <ColorItem
+    title="brand · primary"
+    subtitle="El del logotipo: Cobrar y acciones principales (botón default), selección, foco, contadores."
+    colors={{ brand: "var(--brand)" }}
+  />
+  <ColorItem
+    title="brand-soft"
+    subtitle="Versión muy clara de brand: línea seleccionada, resultado activo, cambio a devolver, tarjetas al pasar el dedo."
+    colors={{ "brand-soft": "var(--brand-soft)" }}
+  />
+</ColorPalette>
+
+### Peligro y éxito
+
+<ColorPalette>
+  <ColorItem
+    title="destructive"
+    subtitle="Borrar y errores. Botón danger (relleno: Sí, eliminar; Sí, anular compra), texto e icono del botón destructive (Eliminar, Cerrar sesión), pago rechazado, PIN incorrecto."
+    colors={{ destructive: "var(--destructive)" }}
+  />
+  <ColorItem
+    title="destructive-soft"
+    subtitle="Versión muy clara de destructive: fondo del botón destructive y de la baldosa de los avisos de borrar o de error."
+    colors={{ "destructive-soft": "var(--destructive-soft)" }}
+  />
+  <ColorItem
+    title="success · success-soft"
+    subtitle="Éxito: cobro completado (baldosa del icono) y PIN correcto."
+    colors={{
+      success: "var(--success)",
+      "success-soft": "var(--success-soft)",
+    }}
+  />
+</ColorPalette>
+
+### Neutros
+
+<ColorPalette>
+  <ColorItem
+    title="background · foreground"
+    subtitle="Fondo blanco y texto casi negro."
+    colors={{
+      background: "var(--background)",
+      foreground: "var(--foreground)",
+    }}
+  />
+  <ColorItem
+    title="muted · muted-foreground"
+    subtitle="Superficies secundarias (cabecera de tabla, barra de atajos, cajas de resumen) y texto de apoyo."
+    colors={{
+      muted: "var(--muted)",
+      "muted-foreground": "var(--muted-foreground)",
+    }}
+  />
+  <ColorItem
+    title="border"
+    subtitle="Bordes y separadores."
+    colors={{ border: "var(--border)" }}
+  />
+</ColorPalette>
+
+## Tipografía
+
+**Geist** (`--font-sans`) para la interfaz y **Geist Mono** (`--font-mono`) solo para los códigos
+EAN. Todas las cifras usan `tabular-nums` para que los importes queden alineados.
+
+**Escala única.** Cada texto tiene un rol, y cada rol, un único estilo. No se inventan tamaños
+fuera de esta tabla.
+
+<Typeset
+  fontFamily="var(--font-sans)"
+  fontSizes={[
+    "48px",
+    "36px",
+    "30px",
+    "24px",
+    "20px",
+    "18px",
+    "16px",
+    "14px",
+    "12px",
+  ]}
+  fontWeight={600}
+  sampleText="Total 34,71 € · Plátano de Canarias"
+/>
+
+| Rol                        | Clase                                                               | Dónde                                                                             |
+| -------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **Cifra protagonista**     | `text-5xl font-semibold tracking-tight tabular-nums`                | Total (panel, forma de pago, tarjeta, cobro completado), peso, cantidad de piezas |
+| **Título de pantalla**     | `text-4xl font-semibold tracking-tight`                             | Solo el saludo de la pantalla de bloqueo                                          |
+| **Cifra secundaria**       | `text-3xl font-semibold tabular-nums`                               | Cambio o falta, importe en báscula y cantidad, visor del teclado                  |
+| **Cifra pequeña**          | `text-2xl font-semibold tabular-nums`                               | Resumen al pausar o anular, cantidad en la línea, reloj, entregado                |
+| **Título de modal**        | `text-xl font-semibold` (en `DialogTitle`)                          | Todos los modales: se define una vez, en el componente base                       |
+| **Título de estado vacío** | `text-lg font-medium`                                               | «Escribe para empezar a buscar», «Sin resultados», «Cargando…»                    |
+| **Cuerpo**                 | `text-base` (nombres de producto: `font-medium`)                    | Filas, resultados, tarjetas, botones, descripciones de modal                      |
+| **Secundario**             | `text-sm text-muted-foreground`                                     | EAN (`font-mono`), precios unitarios, contadores, etiquetas de valor              |
+| **Rótulo**                 | `text-xs font-medium tracking-wide text-muted-foreground uppercase` | TOTAL, cabeceras de la tabla, PRODUCTO SELECCIONADO                               |
+
+- **Pesos:** `font-semibold` para cifras y títulos; `font-medium` para nombres de producto,
+  botones y rótulos; normal para el resto.
+- **Mayúsculas:** todo en formato de frase («Añadir al carrito», «Cobro completado»). Las
+  MAYÚSCULAS solo en los **rótulos** de 12 px, y siempre por CSS (`uppercase`), nunca escritas.
+- **Etiquetas de valor** («Importe», «Total a cobrar», «Cambio», «Peso en báscula»): siempre
+  `text-sm text-muted-foreground`, con el valor en su nivel de cifra.
+
+## Tamaños táctiles
+
+La pantalla es **táctil**. Todo elemento pulsable mide **al menos 56 px** de alto. El componente
+`Button` tiene tres tamaños añadidos para el TPV:
+
+<div className="my-6 flex items-center gap-3">
+  <Button size="xl" variant="outline">
+    xl · 56 px
+  </Button>
+  <Button size="2xl">2xl · 72 px</Button>
+  <Button size="icon-xl" variant="outline">
+    +
+  </Button>
+</div>
+
+| Tamaño    | Alto  | Uso                                                   |
+| --------- | ----- | ----------------------------------------------------- |
+| `xl`      | 56 px | Botones generales, teclas del teclado numérico, menús |
+| `2xl`     | 72 px | Acción principal: **Cobrar**                          |
+| `icon-xl` | 56 px | Botones solo con icono                                |
+
+Otras áreas táctiles: filas del ticket y resultados del buscador (72 px), botones de sección
+(96 px), productos del catálogo de sección (224 px) y formas de pago (176 px).
+
+## Interacción táctil
+
+- **Modales en lugar de desplegables.** Los botones de la cabecera (_Clientes en pausa_, cajero)
+  y el cobro abren un `Dialog`: fondo gris (`bg-black/40`), X de cierre de 56 px y cierre al
+  pulsar fuera. No se usan menús desplegables ni _popovers_ que se activen al tocar.
+- **Todo es un componente.** Ninguna pieza visible se dibuja a mano dentro de otra: el rótulo
+  en mayúsculas es `Eyebrow`, las filas «rótulo … dato» son `SummaryRow`, las tarjetas táctiles
+  `OptionCard`, los estados vacíos `EmptyState`, los contadores `CountBadge`… Así se ven igual en
+  todas partes y se cambian en un solo sitio.
+- **De borde a borde.** Las listas de productos (ticket y resultados del buscador) van a sangre:
+  sin esquinas ni separación entre filas, con una línea debajo de cada una, 24 px de margen
+  lateral y la misma franja roja a la izquierda para la fila activa. Los buscadores de la
+  pantalla y del modal son la misma barra (`SearchField`, variante `bar`).
+- **Un solo modal para todo.** Todos los modales se construyen con `Comunes/Modal` (título,
+  descripción, icono o imagen, cifra, contenido y pie de botones), y las confirmaciones
+  «¿Seguro que…?» con `Comunes/ConfirmDialog`. Así todos tienen las mismas medidas, márgenes y
+  botones. Solo los de pantalla completa (catálogo, buscador) usan `UI/Dialog` directamente.
+- **Nunca dos modales a la vez.** Si un modal lleva a otro (catálogo → báscula), el primero se
+  oculta y, al volver, reaparece tal como estaba (`keepMounted` en `DialogContent`).
+- **Avisos en la cabecera.** Los avisos que no requieren acción (lectura de la pistola) salen
+  en el hueco entre el logotipo y la hora, como una píldora gris pequeña: molestan lo menos
+  posible y nunca tapan ni desplazan el contenido.
+- **Feedback al pulsar.** Los botones bajan 1 px al pulsar (`active:translate-y-px`).
+- **Sin _hover_ como única pista.** Todo estado importante (selección, multiplicador activo)
+  se marca con color y borde, no solo al pasar el ratón.
+
+## Pantalla
+
+- **Solo escritorio.** Ancho mínimo de 1280 px (`min-w-7xl`) y alto de toda la ventana. Sin breakpoints.
+- **Sin scroll de página.** En ventanas bajas, cada columna (ticket y panel de cobro) hace scroll por su cuenta; los modales tienen altura máxima y scroll interno.
+- **Reparto.** Columna de ticket ≈70 % y panel de cobro ≈30 % (`grid-cols-[7fr_3fr]` en `PosScreen`).
+- **Radios.** `--radius: 0.75rem`. Paneles y modales con `rounded-2xl`, controles con `rounded-xl`.
