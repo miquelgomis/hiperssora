@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite"
 
-import { cashier, mockDate, pausedTickets } from "@/mocks/tickets"
+import { cashier } from "@/config/auth"
+import { mockDate, pausedTickets } from "@/mocks/tickets"
 
 import { PosHeader } from "./pos-header"
 import { ScanNotice } from "./scan-notice"

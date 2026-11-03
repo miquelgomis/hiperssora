@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite"
 import { fn } from "storybook/test"
 
-import { cashier } from "@/mocks/tickets"
+import { cashier } from "@/config/auth"
 
 import { UserDialog } from "./user-dialog"
 

@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite"
 import { expect, fn, userEvent, waitFor, within } from "storybook/test"
 
-import { cashier, mockDate } from "@/mocks/tickets"
+import { cashier } from "@/config/auth"
+import { mockDate } from "@/mocks/tickets"
 
 import { LockScreen } from "./lock-screen"
 

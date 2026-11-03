@@ -1,3 +1,4 @@
+import { bagProduct } from "@/config/products"
 import type { Product } from "@/types/pos"
 
 // `categoryId` de fruta, verdura y pan coincide con el id de su sección (`@/config/sections`)
@@ -11,14 +12,6 @@ export const products = {
     price: 2.35,
     unit: "unit",
     categoryId: "alimentacion",
-  },
-  compresas: {
-    id: "compresas",
-    name: "Compresas noche 12 ud",
-    ean: "8411234567890",
-    price: 2.1,
-    unit: "unit",
-    categoryId: "drogueria",
   },
   cerveza: {
     id: "cerveza",
@@ -131,38 +124,7 @@ export const products = {
     pricePerKg: 9,
     categoryId: "panaderia",
   },
-  almendras: {
-    id: "almendras",
-    name: "Almendra natural",
-    ean: "2000310000004",
-    price: 12.9,
-    unit: "kg",
-    categoryId: "granel",
-  },
-  arroz: {
-    id: "arroz",
-    name: "Arroz redondo",
-    ean: "2000320000001",
-    price: 1.8,
-    unit: "kg",
-    categoryId: "granel",
-  },
-  garbanzos: {
-    id: "garbanzos",
-    name: "Garbanzo pedrosillano",
-    ean: "2000330000008",
-    price: 3.2,
-    unit: "kg",
-    categoryId: "granel",
-  },
-  bolsa: {
-    id: "bolsa",
-    name: "Bolsa reutilizable",
-    ean: "2000900000009",
-    price: 0.15,
-    unit: "unit",
-    categoryId: "drogueria",
-  },
+  bolsa: bagProduct,
 } satisfies Record<string, Product>
 
 /** Catálogo completo, para el buscador. */

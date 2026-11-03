@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite"
 
-import { cashier } from "@/mocks/tickets"
+import { cashier } from "@/config/auth"
 
 import { CashierIdentity } from "./cashier-identity"
 
