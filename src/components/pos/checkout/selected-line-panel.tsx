@@ -4,20 +4,23 @@ import { ChevronDown, Keyboard } from "lucide-react"
 
 import { Eyebrow, ProductThumbnail } from "@/components/common"
 import { Button } from "@/components/ui/button"
-import { usePersistentState } from "@/hooks/use-persistent-state"
+import { useControllableState } from "@/components/hooks"
 import { cn } from "@/lib/utils"
 import type { TicketLine } from "@/types/pos"
 
 import { Numpad, type NumpadProps } from "./numpad"
 
-/** Preferencia del cajero: teclas en pantalla desplegadas o no. Se recuerda entre recargas. */
-const KEYPAD_STORAGE_KEY = "hiperssora-tpv:keypad-open"
-
 export type SelectedLinePanelProps = {
   /** Línea seleccionada del ticket. Sin línea, la zona queda neutra. */
   line?: TicketLine
   numpad?: Omit<NumpadProps, "className" | "showKeys">
-  /** Teclas desplegadas al inicio (útil para documentar). Por defecto, plegadas. */
+  /**
+   * Teclas en pantalla desplegadas (control externo). En la app, `PosApp` recuerda la
+   * preferencia del cajero entre recargas.
+   */
+  keypadOpen?: boolean
+  onKeypadOpenChange?: (open: boolean) => void
+  /** Teclas desplegadas al inicio, sin control externo. Por defecto, plegadas. */
   defaultKeypadOpen?: boolean
   className?: string
 }
@@ -34,11 +37,14 @@ export type SelectedLinePanelProps = {
 export function SelectedLinePanel({
   line,
   numpad,
+  keypadOpen,
+  onKeypadOpenChange,
   defaultKeypadOpen = false,
   className,
 }: SelectedLinePanelProps) {
-  const [isKeypadOpen, setIsKeypadOpen] = usePersistentState(
-    KEYPAD_STORAGE_KEY,
+  const [isKeypadOpen, setIsKeypadOpen] = useControllableState(
+    keypadOpen,
+    onKeypadOpenChange,
     defaultKeypadOpen
   )
 

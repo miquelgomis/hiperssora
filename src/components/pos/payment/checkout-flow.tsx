@@ -1,25 +1,27 @@
 "use client"
 
-import { useEffect, useState } from "react"
-
-import { CARD_APPROVAL_DELAY_MS } from "@/lib/payment-terminal"
-import type { PaymentMethod } from "@/types/pos"
+import { useControllableState } from "@/components/hooks"
+import type { CheckoutStep } from "@/types/pos"
 
 import { CardPaymentDialog } from "./card-payment-dialog"
 import { CashPaymentDialog } from "./cash-payment-dialog"
 import { PaymentCompleteDialog } from "./payment-complete-dialog"
 import { PaymentMethodDialog } from "./payment-method-dialog"
 
-type Step =
-  | { name: "method" }
-  | { name: "cash"; tendered: number }
-  | { name: "card" }
-  | { name: "complete"; method: PaymentMethod; change: number }
+const START: CheckoutStep = { name: "method" }
 
 export type CheckoutFlowProps = {
   /** Cobro en curso (se ha pulsado *Cobrar*). */
   open: boolean
   total: number
+  /**
+   * Paso actual (control externo). Quien conecta el datáfono lo controla para pasar de
+   * `card` a `complete` cuando el pago se aprueba.
+   */
+  step?: CheckoutStep
+  onStepChange?: (step: CheckoutStep) => void
+  /** Paso inicial sin control externo (útil para documentar). */
+  defaultStep?: CheckoutStep
   /** Se sale del cobro sin cobrar (Cancelar o Esc en la forma de pago). */
   onCancel?: () => void
   /** "Nueva venta" tras cobrar: hay que vaciar la caja. */
@@ -31,33 +33,31 @@ export type CheckoutFlowProps = {
  * Cada paso sustituye al anterior (nunca hay dos modales a la vez) y *Volver* o *Cancelar*
  * regresan al paso previo.
  *
- * Maqueta: el datáfono siempre aprueba tras 2,5 s (`src/lib/payment-terminal.ts`).
+ * Es solo interfaz: no habla con el datáfono. En el paso `card` espera a que quien lo controla
+ * (`step`) lo pase a `complete`.
  */
 export function CheckoutFlow({
   open,
   total,
+  step: stepProp,
+  onStepChange,
+  defaultStep = START,
   onCancel,
   onComplete,
 }: CheckoutFlowProps) {
-  const [step, setStep] = useState<Step>({ name: "method" })
-
-  // Datáfono simulado: aprueba el pago con tarjeta pasado un tiempo.
-  useEffect(() => {
-    if (step.name !== "card") return
-    const timer = setTimeout(
-      () => setStep({ name: "complete", method: "card", change: 0 }),
-      CARD_APPROVAL_DELAY_MS
-    )
-    return () => clearTimeout(timer)
-  }, [step.name])
+  const [step, setStep] = useControllableState(
+    stepProp,
+    onStepChange,
+    defaultStep
+  )
 
   function cancel() {
-    setStep({ name: "method" })
+    setStep(START)
     onCancel?.()
   }
 
   function finish() {
-    setStep({ name: "method" })
+    setStep(START)
     onComplete?.()
   }
 
@@ -80,8 +80,8 @@ export function CheckoutFlow({
         onAmountTenderedChange={(tendered) =>
           setStep({ name: "cash", tendered })
         }
-        onOpenChange={(next) => !next && setStep({ name: "method" })}
-        onBack={() => setStep({ name: "method" })}
+        onOpenChange={(next) => !next && setStep(START)}
+        onBack={() => setStep(START)}
         onConfirm={() =>
           step.name === "cash" &&
           setStep({
@@ -95,7 +95,7 @@ export function CheckoutFlow({
         open={open && step.name === "card"}
         total={total}
         status="waiting"
-        onCancel={() => setStep({ name: "method" })}
+        onCancel={() => setStep(START)}
       />
       <PaymentCompleteDialog
         open={open && step.name === "complete"}

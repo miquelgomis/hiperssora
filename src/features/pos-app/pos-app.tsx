@@ -2,20 +2,35 @@
 
 import { useState } from "react"
 
+import { PosScreen, type PosScreenProps } from "@/components/pos/layout"
+import { LockScreen, type LockScreenVariant } from "@/components/pos/lock"
+import { CheckoutFlow } from "@/components/pos/payment"
+import {
+  AgeVerificationDialog,
+  ProductNotFoundDialog,
+} from "@/components/pos/ticket"
+import { DEMO_PIN } from "@/config/auth"
 import { sections, type Section } from "@/config/sections"
 import { useBarcodeScanner } from "@/hooks/use-barcode-scanner"
-import { usePosKeyboard } from "@/hooks/use-pos-keyboard"
+import { useCheckout } from "@/hooks/use-checkout"
+import { useNow } from "@/hooks/use-now"
 import { usePausedTickets } from "@/hooks/use-paused-tickets"
+import { usePersistentState } from "@/hooks/use-persistent-state"
+import { usePosKeyboard } from "@/hooks/use-pos-keyboard"
+import { useProductSearch } from "@/hooks/use-product-search"
 import { useQuantityEntry } from "@/hooks/use-quantity-entry"
+import { useScale } from "@/hooks/use-scale"
+import { useSectionCatalog } from "@/hooks/use-section-catalog"
 import { useTicket } from "@/hooks/use-ticket"
-import { fetchProducts } from "@/lib/product-api"
+import {
+  fetchProducts,
+  fetchSectionCatalog,
+  type ProductSearchFn,
+  type SectionCatalogFn,
+} from "@/lib/product-api"
+import { SCALE_MOCKUP_NOTE } from "@/lib/scale"
 import { findLineByEan, getQuantityStep, getTicketTotal } from "@/lib/ticket"
 import type { PausedTicket, Product, ScanStatus, TicketLine } from "@/types/pos"
-
-import { LockScreen, type LockScreenVariant } from "../lock"
-import { CheckoutFlow } from "../payment"
-import { AgeVerificationDialog, ProductNotFoundDialog } from "../ticket"
-import { PosScreen, type PosScreenProps } from "./pos-screen"
 
 export type PosAppProps = Omit<
   PosScreenProps,
@@ -42,7 +57,18 @@ export type PosAppProps = Omit<
   | "onConfirmingPauseChange"
   | "openSection"
   | "onOpenSectionChange"
+  | "search"
+  | "sections"
+  | "keypadOpen"
+  | "onKeypadOpenChange"
 > & {
+  /**
+   * Búsqueda de productos (buscador y pistola). Por defecto, el catálogo real de Nutriinfo
+   * (`/api/products`). Las stories pasan una simulada.
+   */
+  search?: ProductSearchFn
+  /** Carga del catálogo de las secciones. Por defecto, el real de Nutriinfo. */
+  loadSection?: SectionCatalogFn
   /** Compras en pausa al arrancar. Por defecto, ninguna. */
   initialPausedTickets?: PausedTicket[]
   /** Líneas con las que arranca el ticket. Por defecto, vacío. */
@@ -57,7 +83,10 @@ export type PosAppProps = Omit<
 }
 
 /**
- * Aplicación del TPV: la pantalla principal con su estado más la pantalla de bloqueo.
+ * Aplicación del TPV. Es la capa que **conecta** el sistema de diseño (`src/components`, solo
+ * interfaz) con los datos y la lógica: el estado (hooks de `src/hooks`), el catálogo de
+ * Nutriinfo, la báscula y el datáfono simulados, el PIN y localStorage. Pinta `PosScreen` con
+ * todo su estado, el flujo de cobro, los avisos de la pistola y la pantalla de bloqueo.
  *
  * - Al entrar, la caja está bloqueada con la bienvenida al cajero.
  * - *Bloquear pantalla* (modal del cajero) vuelve a bloquearla y el PIN correcto la desbloquea.
@@ -81,9 +110,12 @@ export function PosApp({
   initialPausedTickets = [],
   storageKey,
   initialLock = "welcome",
+  search = fetchProducts,
+  loadSection = fetchSectionCatalog,
+  date,
   ...screenProps
 }: PosAppProps) {
-  const { search = fetchProducts } = screenProps
+  const now = useNow()
   const [lock, setLock] = useState<LockScreenVariant | null>(initialLock)
   const [scanStatus, setScanStatus] = useState<ScanStatus | null>(null)
   const ticket = useTicket(
@@ -95,6 +127,13 @@ export function PosApp({
     storageKey ? `${storageKey}:paused` : null
   )
   const [isCharging, setIsCharging] = useState(false)
+  const checkout = useCheckout()
+  const productSearch = useProductSearch(search)
+  // Preferencia del cajero: teclas en pantalla desplegadas o no.
+  const [isKeypadOpen, setIsKeypadOpen] = usePersistentState(
+    storageKey ? `${storageKey}:keypad-open` : null,
+    false
+  )
   const [pendingAdd, setPendingAdd] = useState<{
     product: Product
     quantity: number
@@ -107,6 +146,9 @@ export function PosApp({
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isConfirmingPause, setIsConfirmingPause] = useState(false)
   const [openSection, setOpenSection] = useState<Section | null>(null)
+  const [weighing, setWeighing] = useState<Product | null>(null)
+  const sectionCatalog = useSectionCatalog(loadSection, openSection)
+  const scale = useScale(weighing)
   const [confirmingRemovalId, setConfirmingRemovalId] = useState<string | null>(
     null
   )
@@ -199,6 +241,24 @@ export function PosApp({
     <>
       <PosScreen
         {...screenProps}
+        date={date ?? now}
+        search={{
+          query: productSearch.query,
+          onQueryChange: productSearch.setQuery,
+          results: productSearch.results,
+          isLoading: productSearch.isLoading,
+          hasError: productSearch.hasError,
+        }}
+        sections={{
+          ...sectionCatalog,
+          weighing,
+          onWeighingChange: setWeighing,
+          weight: scale.weight,
+          onReweigh: scale.reweigh,
+          scaleMockupNote: SCALE_MOCKUP_NOTE,
+        }}
+        keypadOpen={isKeypadOpen}
+        onKeypadOpenChange={setIsKeypadOpen}
         lines={ticket.lines}
         selectedLineId={ticket.selectedLineId}
         onAddProduct={requestAdd}
@@ -231,6 +291,8 @@ export function PosApp({
       />
       <CheckoutFlow
         open={isCharging}
+        step={checkout.step}
+        onStepChange={checkout.setStep}
         total={getTicketTotal(ticket.lines)}
         onCancel={() => setIsCharging(false)}
         onComplete={() => {
@@ -261,7 +323,11 @@ export function PosApp({
           key={lock}
           cashier={screenProps.cashier}
           variant={lock}
-          date={screenProps.date}
+          date={date ?? now}
+          // Maqueta: el PIN es el mismo para todos y se muestra en pantalla a propósito.
+          verifyPin={(pin) => pin === DEMO_PIN}
+          pinLength={DEMO_PIN.length}
+          demoPin={DEMO_PIN}
           onUnlock={() => setLock(null)}
         />
       )}

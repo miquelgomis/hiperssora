@@ -1,5 +1,4 @@
 import type { Section } from "@/config/sections"
-import type { ProductSearchFn, SectionCatalogFn } from "@/lib/product-api"
 import { getItemCount, getTicketTotal } from "@/lib/ticket"
 import type {
   Cashier,
@@ -12,7 +11,8 @@ import type {
 import { CheckoutPanel, type CheckoutPanelProps } from "../checkout"
 import { PosHeader, ScanNotice } from "../header"
 import { ShortcutsBar } from "../shortcuts"
-import { TicketPanel } from "../ticket"
+import type { SectionCatalogState } from "../sections"
+import { TicketPanel, type ProductSearchState } from "../ticket"
 
 export type PosScreenProps = {
   cashier: Cashier
@@ -20,15 +20,18 @@ export type PosScreenProps = {
   pausedTickets: PausedTicket[]
   /** Producto «bolsa» que añade el botón *Bolsa*. */
   bagProduct: Product
-  /** Búsqueda de productos. Por defecto, el catálogo real (Nutriinfo). */
-  search?: ProductSearchFn
-  /** Catálogo de las secciones. Por defecto, el real (Nutriinfo). */
-  loadSection?: SectionCatalogFn
+  /** Estado del buscador: texto, resultados, carga y error. */
+  search?: ProductSearchState
+  /** Estado de las secciones: catálogo de la sección abierta y báscula. */
+  sections?: SectionCatalogState
   selectedLineId?: string
   /** Estado del teclado numérico. En la app lo pone `PosApp` (`useQuantityEntry`). */
   numpad?: CheckoutPanelProps["numpad"]
-  /** Fecha fija para el reloj (stories). */
-  date?: Date
+  /** Teclas en pantalla del producto seleccionado desplegadas (control externo). */
+  keypadOpen?: boolean
+  onKeypadOpenChange?: (open: boolean) => void
+  /** Fecha y hora del reloj. */
+  date?: Date | null
   /** Producto elegido (buscador o sección). `quantity`: unidades o kg; por defecto, 1. */
   onAddProduct?: (product: Product, quantity?: number) => void
   onSelectLine?: (lineId: string) => void
@@ -62,7 +65,8 @@ export type PosScreenProps = {
 
 /**
  * Pantalla principal del TPV: barra superior, ticket (≈70 %), panel de cobro (≈30 %) y barra de
- * atajos. Solo escritorio: ocupa toda la ventana con un ancho mínimo de 1280 px. La página nunca
+ * atajos. Es solo interfaz: recibe el ticket y el estado de cada zona por props y avisa con
+ * callbacks. En la app la conecta `PosApp` (`src/features/pos-app`). Solo escritorio: ocupa toda la ventana con un ancho mínimo de 1280 px. La página nunca
  * hace scroll: si la ventana es baja, el ticket y el panel de cobro hacen scroll cada uno en su
  * columna.
  */
@@ -72,9 +76,11 @@ export function PosScreen({
   pausedTickets,
   bagProduct,
   search,
-  loadSection,
+  sections,
   selectedLineId,
   numpad,
+  keypadOpen,
+  onKeypadOpenChange,
   date,
   onAddProduct,
   onSelectLine,
@@ -143,9 +149,11 @@ export function PosScreen({
               .filter((line) => line.product.id === bagProduct.id)
               .reduce((count, line) => count + line.quantity, 0)}
             bagProduct={bagProduct}
-            loadSection={loadSection}
+            sections={sections}
             onAddProduct={onAddProduct}
             numpad={numpad}
+            keypadOpen={keypadOpen}
+            onKeypadOpenChange={onKeypadOpenChange}
             onPauseTicket={onPauseTicket}
             isConfirmingPause={isConfirmingPause}
             openSection={openSection}

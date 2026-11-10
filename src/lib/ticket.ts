@@ -1,4 +1,4 @@
-import { LOOSE_BREAD_CATEGORY_IDS } from "@/config/sections"
+import { LOOSE_BREAD_CATEGORY_IDS, type Section } from "@/config/sections"
 import type { Product, TicketLine } from "@/types/pos"
 
 /** Importe de una línea, redondeado a céntimos. */
@@ -125,4 +125,22 @@ export function isSoldLoose(product: Product): boolean {
     LOOSE_BREAD_CATEGORY_IDS.has(product.categoryId) &&
     !/^\d/.test(product.name)
   )
+}
+
+/**
+ * Lo que muestra el catálogo de una sección: solo los productos sueltos (los envasados tienen su
+ * propio código de barras y entran con la pistola o el buscador), listos para venderse al peso
+ * (Frutería, Verdulería) o por pieza (Panadería).
+ */
+export function toSectionProducts(
+  section: Section,
+  products: Product[]
+): Product[] {
+  return products
+    .filter(isSoldLoose)
+    .map((product) =>
+      section.soldBy === "weight"
+        ? toWeighedProduct(product)
+        : withoutFormat(product)
+    )
 }

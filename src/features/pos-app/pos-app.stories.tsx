@@ -8,7 +8,7 @@ import { mockDate, pausedTickets, ticketLines } from "@/mocks/tickets"
 import { PosApp } from "./pos-app"
 
 const meta = {
-  title: "TPV/Pantalla/PosApp",
+  title: "Aplicación/PosApp",
   component: PosApp,
   args: {
     ...posAppMock,
@@ -26,7 +26,7 @@ const meta = {
     layout: "fullscreen",
     docs: {
       description: {
-        component: `Aplicación completa, la que renderiza \`/\`: \`PosScreen\` con su estado más \`LockScreen\`. Es interactiva: pruébala en el lienzo.
+        component: `Aplicación completa, la que renderiza \`/\`. **No es parte del sistema de diseño:** vive en \`src/features/pos-app\` y es la capa que conecta los componentes (solo interfaz) con el estado, los datos y el hardware. Pinta \`PosScreen\` con todo su estado, más \`CheckoutFlow\`, los avisos de la pistola y \`LockScreen\`. Aquí se prueba la integración. En Storybook, el catálogo es el de ejemplo (\`mockSearch\`, \`mockSectionCatalog\`); en la app, el real de Nutriinfo. Es interactiva: pruébala en el lienzo.
 
 - **Bloqueo:** empieza bloqueada con la bienvenida. El PIN \`1111\`, tecleado en el teclado físico, la desbloquea con una transición, y **Bloquear pantalla** (modal del cajero) la vuelve a bloquear. **Cerrar sesión** también lleva a la pantalla de bloqueo, con la bienvenida de una sesión nueva.
 - **Ticket:** empieza **vacío**. Cada producto elegido en el buscador **se encola al final** del ticket, queda seleccionado y la lista se desplaza hasta él. Si el producto ya está, se suma 1 a su cantidad en lugar de duplicar la línea. La línea seleccionada se **despliega** para cambiar la cantidad (− / +) o eliminarla, con confirmación en la propia franja. El estado vive en el hook \`useTicket\`.

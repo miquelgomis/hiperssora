@@ -1,7 +1,7 @@
-import type { PosAppProps, PosScreenProps } from "@/components/pos/layout"
-
+import type { PosScreenProps } from "@/components/pos/layout"
 import { cashier } from "@/config/auth"
 import { bagProduct } from "@/config/products"
+import type { PosAppProps } from "@/features/pos-app"
 
 import { pausedTickets, ticketLines } from "./tickets"
 
@@ -13,7 +13,8 @@ export const posAppMock: PosAppProps = {
 
 /** Pantalla con una compra en curso y dos en pausa, para documentar en Storybook. */
 export const posScreenMock: PosScreenProps = {
-  ...posAppMock,
+  cashier,
+  bagProduct,
   pausedTickets,
   lines: ticketLines,
   selectedLineId: ticketLines[2].id,

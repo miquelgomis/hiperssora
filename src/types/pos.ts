@@ -58,6 +58,16 @@ export type TicketSummary = {
 
 export type PaymentMethod = "card" | "cash"
 
+/**
+ * Paso del flujo de cobro: forma de pago → efectivo (con lo entregado) o tarjeta (esperando al
+ * datáfono) → cobro completado (con el cambio).
+ */
+export type CheckoutStep =
+  | { name: "method" }
+  | { name: "cash"; tendered: number }
+  | { name: "card" }
+  | { name: "complete"; method: PaymentMethod; change: number }
+
 /** Estado de la última lectura con la pistola: buscando, no encontrado o error. */
 export type ScanStatus = {
   state: "searching" | "not-found" | "error"

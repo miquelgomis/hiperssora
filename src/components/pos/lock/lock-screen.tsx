@@ -10,7 +10,6 @@ import {
 import { KeyRound } from "lucide-react"
 
 import { Logo, MockupNote } from "@/components/common"
-import { DEMO_PIN, PIN_LENGTH } from "@/config/auth"
 import { cn } from "@/lib/utils"
 import type { Cashier } from "@/types/pos"
 
@@ -34,10 +33,19 @@ export type LockScreenProps = {
    * `locked`: el cajero ha pulsado *Bloquear pantalla*.
    */
   variant?: LockScreenVariant
+  /**
+   * Comprueba el PIN tecleado. El componente no sabe cuál es el bueno: se lo pregunta a quien lo
+   * usa (en la maqueta, `PosApp` lo compara con el PIN de `src/config/auth.ts`).
+   */
+  verifyPin?: (pin: string) => boolean
+  /** Dígitos del PIN. Al completarlos se comprueba. Por defecto, 4. */
+  pinLength?: number
+  /** Aviso de maqueta con el PIN de prueba, que se muestra en pantalla a propósito. */
+  demoPin?: string
   /** Se llama con el PIN correcto, cuando termina la animación de salida. */
   onUnlock?: () => void
-  /** Fecha fija para el reloj (stories). */
-  date?: Date
+  /** Fecha y hora del reloj. */
+  date?: Date | null
   className?: string
 }
 
@@ -45,14 +53,16 @@ export type LockScreenProps = {
  * Pantalla de bloqueo del TPV. Cubre toda la pantalla y pide el PIN del cajero, que se teclea
  * con el **teclado físico** de la caja (no hay teclado en pantalla).
  *
- * Al completar los 4 dígitos se valida. Si es correcto, los puntos se ponen en verde y la
- * pantalla sale como un modal (fundido de 200 ms, contenido al 95 %); al terminar se llama a
- * `onUnlock`. Si no, marca
- * el error y vacía el PIN.
+ * Al completar los dígitos, lo comprueba con `verifyPin`. Si es correcto, los puntos se ponen en
+ * verde y la pantalla sale como un modal (fundido de 200 ms, contenido al 95 %); al terminar se
+ * llama a `onUnlock`. Si no, marca el error y vacía el PIN.
  */
 export function LockScreen({
   cashier,
   variant = "welcome",
+  verifyPin = () => false,
+  pinLength = 4,
+  demoPin,
   onUnlock,
   date,
   className,
@@ -72,9 +82,9 @@ export function LockScreen({
     const next = pinRef.current + digit
     setHasError(false)
     setPin(next)
-    if (next.length < PIN_LENGTH) return
+    if (next.length < pinLength) return
 
-    if (next === DEMO_PIN) {
+    if (verifyPin(next)) {
       setPhase("unlocking")
     } else {
       setPin("")
@@ -141,17 +151,19 @@ export function LockScreen({
         <div className="flex flex-col items-center gap-4">
           <PinIndicator
             filled={pin.length}
-            length={PIN_LENGTH}
+            length={pinLength}
             error={hasError}
             success={isUnlocking}
           />
           <PinHint hasError={hasError} />
         </div>
 
-        <MockupNote icon={KeyRound}>
-          el PIN es{" "}
-          <strong className="font-mono text-foreground">{DEMO_PIN}</strong>
-        </MockupNote>
+        {demoPin && (
+          <MockupNote icon={KeyRound}>
+            el PIN es{" "}
+            <strong className="font-mono text-foreground">{demoPin}</strong>
+          </MockupNote>
+        )}
       </main>
     </div>
   )

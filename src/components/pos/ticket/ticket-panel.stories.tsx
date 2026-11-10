@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite"
 
-import { mockSearch } from "@/mocks/search"
 import { ticketLines } from "@/mocks/tickets"
 
 import { TicketPanel } from "./ticket-panel"
@@ -10,7 +9,6 @@ const meta = {
   component: TicketPanel,
   args: {
     lines: ticketLines,
-    search: mockSearch,
     selectedLineId: ticketLines[2].id,
   },
   parameters: {

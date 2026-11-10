@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite"
 import { expect, fn, userEvent, waitFor, within } from "storybook/test"
 
-import { cashier } from "@/config/auth"
+import { cashier, DEMO_PIN } from "@/config/auth"
 import { mockDate } from "@/mocks/tickets"
 
 import { LockScreen } from "./lock-screen"
@@ -9,9 +9,16 @@ import { LockScreen } from "./lock-screen"
 const meta = {
   title: "TPV/Bloqueo/LockScreen",
   component: LockScreen,
-  args: { cashier, date: mockDate, onUnlock: fn() },
+  args: {
+    cashier,
+    date: mockDate,
+    demoPin: DEMO_PIN,
+    verifyPin: (pin: string) => pin === DEMO_PIN,
+    onUnlock: fn(),
+  },
   argTypes: {
     variant: { control: "inline-radio", options: ["welcome", "locked"] },
+    verifyPin: { control: false },
   },
   parameters: {
     layout: "fullscreen",
@@ -28,7 +35,7 @@ const meta = {
 
 **Transiciones:** las mismas que los modales de la app. Entra con un fundido corto (200 ms) y el contenido acercándose (95 % → 100 %). Con el PIN correcto, los puntos se ponen en verde un instante y la pantalla sale igual que un modal al cerrarse; al terminar se llama a \`onUnlock\`. Con un PIN incorrecto, los puntos se ponen en rojo y se vacía.
 
-**Maqueta:** el PIN es \`1111\` (\`src/config/auth.ts\`) y se muestra en pantalla a propósito.
+**Es solo interfaz:** recoge los dígitos y pregunta a \`verifyPin\` si el PIN es correcto; no sabe cuál es. En la app lo comprueba \`PosApp\`. En la maqueta, el PIN es \`1111\` (\`src/config/auth.ts\`) y se muestra en pantalla a propósito (\`demoPin\`).
 
 > Haz clic en el lienzo y teclea el PIN para probarla.`,
       },

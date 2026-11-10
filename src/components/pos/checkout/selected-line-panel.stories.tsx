@@ -28,7 +28,7 @@ const meta = {
         component: `Franja del panel de cobro que actúa sobre el **producto seleccionado** del ticket, no sobre la compra entera. Va **fija al pie del panel, de borde a borde**, sobre **fondo gris claro** (el rojo se leería como un error), con la foto y el nombre del producto que modifica. 
 
 - Muestra la foto, el nombre y el **visor de la cantidad**, que se cambia con el **teclado físico** de la caja (dígitos + \\\`Enter\\\`, \\\`+\\\`/\\\`−\\\`).
-- **Las teclas en pantalla van plegadas.** El botón **Teclado** las despliega y se recuerda la preferencia (localStorage).`,
+- **Las teclas en pantalla van plegadas.** El botón **Teclado** las despliega (\`keypadOpen\` / \`onKeypadOpenChange\`). En la app, \`PosApp\` recuerda la preferencia entre recargas.`,
       },
     },
   },
@@ -74,13 +74,14 @@ export const ToggleKeypad: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     const toggle = canvas.getByRole("button", { name: /Teclado/ })
-    if (toggle.getAttribute("aria-expanded") === "true")
-      await userEvent.click(toggle)
     await expect(canvas.queryByRole("button", { name: "7" })).toBeNull()
     await userEvent.click(toggle)
     await waitFor(() =>
       expect(canvas.getByRole("button", { name: "7" })).toBeVisible()
     )
     await userEvent.click(toggle)
+    await waitFor(() =>
+      expect(canvas.queryByRole("button", { name: "7" })).toBeNull()
+    )
   },
 }

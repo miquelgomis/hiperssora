@@ -27,6 +27,8 @@ export type ScaleDialogProps = {
   onBack?: () => void
   /** "Añadir al carrito" con el peso leído. */
   onConfirm?: (product: Product, weight: number) => void
+  /** Aviso de maqueta bajo el importe (p. ej., que la báscula es simulada). */
+  mockupNote?: string
 }
 
 /**
@@ -44,6 +46,7 @@ export function ScaleDialog({
   onReweigh,
   onBack,
   onConfirm,
+  mockupNote,
 }: ScaleDialogProps) {
   const isWeighing = weight === null
   const addButtonRef = useRef<HTMLButtonElement>(null)
@@ -110,9 +113,7 @@ export function ScaleDialog({
         size="xl"
       />
 
-      <MockupNote icon={Scale}>
-        báscula simulada con un peso aleatorio entre 0,5 y 1,5 kg
-      </MockupNote>
+      {mockupNote && <MockupNote icon={Scale}>{mockupNote}</MockupNote>}
     </Modal>
   )
 }

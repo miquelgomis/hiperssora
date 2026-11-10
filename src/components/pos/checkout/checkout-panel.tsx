@@ -4,11 +4,10 @@ import { useState } from "react"
 
 import { Separator } from "@/components/ui/separator"
 import type { Section } from "@/config/sections"
-import { useControllableState } from "@/hooks/use-controllable-state"
-import type { SectionCatalogFn } from "@/lib/product-api"
+import { useControllableState } from "@/components/hooks"
 import type { Product, TicketLine } from "@/types/pos"
 
-import { SectionCatalog } from "../sections"
+import { SectionCatalog, type SectionCatalogState } from "../sections"
 import { AddBagButton } from "./add-bag-button"
 import { ClearTicketDialog } from "./clear-ticket-dialog"
 import type { NumpadProps } from "./numpad"
@@ -27,12 +26,15 @@ export type CheckoutPanelProps = {
   bagProduct: Product
   /** Bolsas que ya lleva la compra (contador del botón *Bolsa*). */
   bagCount?: number
-  /** Carga del catálogo de las secciones. Por defecto, el real (Nutriinfo). */
-  loadSection?: SectionCatalogFn
+  /** Estado de las secciones: catálogo de la sección abierta y báscula. */
+  sections?: SectionCatalogState
   /** Producto añadido desde el panel (bolsa o sección); `quantity`: unidades o kg. */
   onAddProduct?: (product: Product, quantity?: number) => void
   /** Estado del teclado numérico (visor, edición, teclas). */
   numpad?: Omit<NumpadProps, "className">
+  /** Teclas en pantalla del producto seleccionado desplegadas (control externo). */
+  keypadOpen?: boolean
+  onKeypadOpenChange?: (open: boolean) => void
   /** "Sí, pausar" tras confirmar: la compra pasa a *Clientes en pausa*. */
   onPauseTicket?: () => void
   /** Sección abierta (control externo, con F5–F7). */
@@ -63,9 +65,11 @@ export function CheckoutPanel({
   selectedLine,
   bagProduct,
   bagCount,
-  loadSection,
+  sections,
   onAddProduct,
   numpad,
+  keypadOpen,
+  onKeypadOpenChange,
   onPauseTicket,
   openSection,
   onOpenSectionChange,
@@ -116,7 +120,7 @@ export function CheckoutPanel({
         {/* Añadir: secciones (grandes) y bolsa (secundaria) */}
         <div className="flex flex-col gap-2">
           <SectionCatalog
-            load={loadSection}
+            {...sections}
             onSelect={onAddProduct}
             section={openSection}
             onSectionChange={onOpenSectionChange}
@@ -137,6 +141,8 @@ export function CheckoutPanel({
         <SelectedLinePanel
           line={selectedLine}
           numpad={numpad}
+          keypadOpen={keypadOpen}
+          onKeypadOpenChange={onKeypadOpenChange}
           className="sticky bottom-0 mt-auto animate-in px-6 py-4 duration-300 fade-in-0 slide-in-from-bottom-4 short:py-3"
         />
       )}

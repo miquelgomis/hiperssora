@@ -56,6 +56,8 @@ const preview: Preview = {
           ],
           "Comunes",
           "UI",
+          // Fuera del sistema de diseño: la app que conecta los componentes (src/features).
+          "Aplicación",
         ],
       },
     },

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import type { Section } from "@/config/sections"
 import type { SectionCatalogFn } from "@/lib/product-api"
+import { toSectionProducts } from "@/lib/ticket"
 import type { Product } from "@/types/pos"
 
 type CatalogState = {
@@ -10,7 +11,10 @@ type CatalogState = {
   hasError: boolean
 }
 
-/** Carga el catálogo de la sección abierta. Con `section` nulo no hace nada. */
+/**
+ * Carga el catálogo de la sección abierta y lo deja listo para mostrar: solo los productos
+ * sueltos, al peso o por pieza (`toSectionProducts`). Con `section` nulo no hace nada.
+ */
 export function useSectionCatalog(
   load: SectionCatalogFn,
   section: Section | null
@@ -22,7 +26,10 @@ export function useSectionCatalog(
     let isCurrent = true
 
     load(section)
-      .then((products) => ({ products, hasError: false }))
+      .then((products) => ({
+        products: toSectionProducts(section, products),
+        hasError: false,
+      }))
       .catch(() => ({ products: [], hasError: true }))
       .then((result) => {
         if (isCurrent) setState({ sectionId: section.id, ...result })

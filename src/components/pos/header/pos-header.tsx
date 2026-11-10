@@ -11,8 +11,8 @@ import { UserDialog } from "./user-dialog"
 export type PosHeaderProps = {
   cashier: Cashier
   pausedTickets: PausedTicket[]
-  /** Fecha fija para el reloj (stories). Si se omite, muestra la hora actual. */
-  date?: Date
+  /** Fecha y hora del reloj. Sin valor, el reloj muestra `--:--`. */
+  date?: Date | null
   /** Recuperar una compra en pausa. */
   onRestoreTicket?: (ticketId: string) => void
   /** Compra en curso: recuperar otra la pausa antes. */

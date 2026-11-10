@@ -7,5 +7,9 @@ export function readScaleWeight(): number {
   return Math.round(grams) / 1000
 }
 
+/** Aviso de maqueta que acompaña a la báscula en pantalla. */
+export const SCALE_MOCKUP_NOTE =
+  "báscula simulada con un peso aleatorio entre 0,5 y 1,5 kg"
+
 /** Lo que tarda la báscula simulada en estabilizar el peso. */
 export const SCALE_DELAY_MS = 1200

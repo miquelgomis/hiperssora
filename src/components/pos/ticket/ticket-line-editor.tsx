@@ -4,7 +4,7 @@ import { Trash2 } from "lucide-react"
 
 import { QuantityStepper } from "@/components/common"
 import { Button } from "@/components/ui/button"
-import { useControllableState } from "@/hooks/use-controllable-state"
+import { useControllableState } from "@/components/hooks"
 import { formatQuantity } from "@/lib/format"
 import { getQuantityStep } from "@/lib/ticket"
 import { cn } from "@/lib/utils"

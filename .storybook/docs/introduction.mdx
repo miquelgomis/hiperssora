@@ -7,10 +7,15 @@ import { Meta } from "@storybook/addon-docs/blocks"
 Catálogo de todos los componentes de la **caja registradora** de Hiperssora: la pantalla que
 usan los cajeros y las cajeras para cobrar a los clientes.
 
-- **Maqueta.** Los componentes son presentacionales: reciben datos por props y exponen
-  callbacks (`onSelect`, `onCharge`…). Lo único conectado es el bloqueo con PIN, el
-  **buscador**, que consulta el catálogo real de [Nutriinfo](https://www.nutriinfo.es), y el
-  **ticket**, al que se encolan los productos buscados, escaneados o elegidos en una sección. En Storybook, el buscador usa datos simulados.
+- **Dos capas separadas.** Esta guía es el **sistema de diseño** (`src/components`): todos sus
+  componentes son **solo interfaz**. Reciben datos por props, avisan con callbacks (`onSelect`,
+  `onCharge`…) y, como mucho, gestionan estado visual (un modal abierto, el resultado activo).
+  No piden datos, no hablan con la báscula ni con el datáfono, no comprueban el PIN y no
+  guardan nada. Eso lo hace la **aplicación** (`src/features`), que los conecta con el
+  catálogo real de [Nutriinfo](https://www.nutriinfo.es), el hardware simulado y localStorage.
+  Una regla de ESLint impide que el sistema de diseño importe esa lógica.
+- **Aplicación**, al final de la barra lateral: `PosApp`, la app completa con datos de
+  ejemplo. No es parte del sistema de diseño; sirve para probar la integración.
 - **Solo escritorio y pantalla táctil.** No es responsive. Ancho mínimo de 1280 px y áreas
   táctiles de al menos 56 px.
 - **Modales, nunca desplegables.** En una pantalla táctil, un menú desplegable abierto se
@@ -55,7 +60,7 @@ nombres en español ("Bolsa", "Frutería", "Anular compra"…).
 
 | En pantalla                                                          | Ficha                                                                              |
 | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Pantalla completa                                                    | [PosApp](?path=/docs/tpv-pantalla-posapp--docs)                                    |
+| Pantalla completa                                                    | [PosScreen](?path=/docs/tpv-pantalla-posscreen--docs)                              |
 | Pantalla de bloqueo y PIN                                            | [LockScreen](?path=/docs/tpv-bloqueo-lockscreen--docs)                             |
 | Barra superior                                                       | [PosHeader](?path=/docs/tpv-cabecera-posheader--docs)                              |
 | Hora                                                                 | [Clock](?path=/docs/tpv-cabecera-clock--docs)                                      |
@@ -97,7 +102,7 @@ nombres en español ("Bolsa", "Frutería", "Anular compra"…).
 | Sección                   | Qué contiene                                                                                                                                                                                                                                                                                                                                                         |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Fundamentos**           | Color corporativo, tipografía y tamaños táctiles                                                                                                                                                                                                                                                                                                                     |
-| **TPV / Pantalla**        | `PosScreen` (pantalla completa) y `PosApp` (con estado y bloqueo)                                                                                                                                                                                                                                                                                                    |
+| **TPV / Pantalla**        | `PosScreen`, la pantalla completa                                                                                                                                                                                                                                                                                                                                    |
 | **TPV / Bloqueo**         | `LockScreen`, `CashierGreeting`, `PinIndicator`, `PinHint`                                                                                                                                                                                                                                                                                                           |
 | **TPV / Cabecera**        | `PosHeader`, `Clock`, `ScanNotice`, `PausedTicketsDialog`, `PausedTicketItem`, `UserDialog`, `CashierIdentity`                                                                                                                                                                                                                                                       |
 | **TPV / Ticket**          | `TicketPanel`. **Buscador:** `SearchTrigger`, `ProductSearch`, `ProductSearchDialog`, `SearchResultItem`, `ProductLabel`. **Líneas:** `TicketList`, `TicketColumnsHeader`, `TicketLineRow`, `TicketLineEditor`, `RemoveLineConfirm`. **Avisos:** `ProductNotFoundDialog`, `ScannedCode`, `AgeVerificationDialog`, `ProductSummary`                                   |
@@ -107,17 +112,19 @@ nombres en español ("Bolsa", "Frutería", "Anular compra"…).
 | **TPV / Barra de atajos** | `ShortcutsBar`                                                                                                                                                                                                                                                                                                                                                       |
 | **Comunes**               | Piezas reutilizables sin lógica del TPV. **Modales:** `Modal`, `ConfirmDialog`. **Datos:** `SummaryRow`, `Eyebrow`, `CountBadge`, `AgeBadge`, `HighlightMatch`. **Superficies:** `OptionCard`, `IconTile`, `EmptyState`, `InfoNote`, `MockupNote`. **Controles:** `SearchField`, `QuantityStepper`, `ShortcutHint`, `HintBar`. **Marca:** `Logo`, `ProductThumbnail` |
 | **UI**                    | Primitivas de [shadcn/ui](https://ui.shadcn.com) sobre las que se construye todo                                                                                                                                                                                                                                                                                     |
+| **Aplicación**            | Fuera del sistema de diseño: `PosApp`, la app que conecta los componentes con el estado, los datos y el hardware. Sus stories prueban la integración                                                                                                                                                                                                                 |
 
 ## Estructura del código
 
 ```
 src/
-├── app/                    # Rutas de Next.js: "/" renderiza PosScreen con datos de ejemplo
-├── components/
+├── app/                    # Rutas de Next.js: "/" renderiza PosApp; api/products → Nutriinfo
+├── components/             # SISTEMA DE DISEÑO: solo interfaz (props → interfaz → callbacks)
 │   ├── ui/                 # Primitivas de shadcn/ui (generadas por la CLI)
 │   ├── common/             # Componentes reutilizables (Logo, ProductThumbnail)
+│   ├── hooks/              # Hooks de interfaz (useControllableState)
 │   └── pos/                # Componentes del TPV, una carpeta por zona de la pantalla
-│       ├── layout/         # PosScreen, PosApp
+│       ├── layout/         # PosScreen
 │       ├── lock/           # Pantalla de bloqueo
 │       ├── header/
 │       ├── ticket/
@@ -125,9 +132,11 @@ src/
 │       ├── sections/       # Frutería, Verdulería, Panadería
 │       ├── payment/
 │       └── shortcuts/
-├── config/               # Atajos de teclado (shortcuts.ts) y PIN de la maqueta (auth.ts)
-├── hooks/                  # Hooks de React (useNow, useProductSearch)
-├── lib/                    # Formato, totales del ticket, búsqueda y cliente de la API de Nutriinfo
+├── features/               # APLICACIÓN: conecta los componentes con el estado y los datos
+│   └── pos-app/            # PosApp
+├── config/                 # Atajos de teclado (shortcuts.ts) y PIN de la maqueta (auth.ts)
+├── hooks/                  # Estado y lógica (useTicket, useProductSearch, useScale…), solo para features
+├── lib/                    # Funciones puras (formato, totales) y cliente de la API de Nutriinfo
 ├── mocks/                  # Datos de ejemplo de la maqueta (catálogo, tickets, cajero)
 └── types/pos.ts            # Tipos del dominio: Product, TicketLine, PausedTicket…
 ```
@@ -138,8 +147,11 @@ src/
   story refleja la zona de la pantalla: `TPV/<Zona>/<Componente>`.
 - **Documentación en el código.** La descripción de cada componente y de cada prop sale de sus
   comentarios JSDoc, y Storybook la muestra en la pestaña _Docs_.
-- **Componentes sin datos propios.** Reciben todo por props; los datos de ejemplo viven en
-  `src/mocks` y solo los importan las stories y la página.
+- **Componentes sin datos propios ni lógica.** Reciben todo por props; los datos de ejemplo
+  viven en `src/mocks` y solo los importan las stories. ESLint impide que `src/components`
+  importe hooks de estado, la API, el hardware simulado, el PIN o `src/features`, y que use
+  `fetch` o `localStorage`. Sus únicos hooks están en `src/components/hooks`
+  (`useControllableState`, para el estado visual que el padre puede controlar).
 - **El formato no se hace en los componentes.** Precios, cantidades y horas pasan por
   `@/lib/format`, y los totales por `@/lib/ticket`.
 - **Cada carpeta tiene un `index.ts`** que exporta sus componentes:

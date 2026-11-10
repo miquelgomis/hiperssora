@@ -1,25 +1,46 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite"
 import { expect, fn, screen, userEvent, waitFor, within } from "storybook/test"
 
-import { products } from "@/mocks/products"
-import { mockSectionCatalog } from "@/mocks/search"
+import { sections, type Section } from "@/config/sections"
+import { toSectionProducts } from "@/lib/ticket"
+import { catalog, products } from "@/mocks/products"
 
 import { SectionCatalog } from "./section-catalog"
+
+/** Catálogo de ejemplo de una sección, tal como lo prepara la app (solo sueltos). */
+function sectionProducts(sectionId: Section["id"]) {
+  const section = sections.find(({ id }) => id === sectionId)!
+  return toSectionProducts(
+    section,
+    catalog.filter((product) => product.categoryId === sectionId)
+  )
+}
 
 const meta = {
   title: "TPV/Secciones/SectionCatalog",
   component: SectionCatalog,
-  args: { load: mockSectionCatalog, onSelect: fn() },
-  argTypes: { load: { control: false }, defaultSection: { control: false } },
+  args: {
+    products: sectionProducts("fruteria"),
+    weight: 0.85,
+    onSelect: fn(),
+    onReweigh: fn(),
+  },
+  argTypes: {
+    products: { control: false },
+    defaultSection: { control: false },
+  },
   parameters: {
     layout: "padded",
     docs: {
       description: {
-        component: `Flujo completo de las secciones: \`SectionButtons\` → \`SectionCatalogDialog\` → \`ScaleDialog\` (Frutería y Verdulería, al peso) o \`QuantityDialog\` (Panadería, por pieza: cuántas barras, panecillos o croissants). Panadería incluye el pan de horno suelto, que en Nutriinfo viene sin formato (\`LOOSE_BREAD_CATEGORY_IDS\`), y la bollería suelta (formato *Pieza*).
+        component: `Flujo completo de las secciones: \`SectionButtons\` → \`SectionCatalogDialog\` → \`ScaleDialog\` (Frutería y Verdulería, al peso) o \`QuantityDialog\` (Panadería, por pieza: cuántas barras, panecillos o croissants).
 
-**Solo productos sueltos.** Las secciones muestran únicamente productos que se venden sueltos (formato *Pieza*, *1/2 Pieza* o *Granel*: una banana, un kiwi verde) y se venden **al peso**: al elegir uno, la báscula lo pesa y el cajero confirma con **Añadir al carrito** (entra en kilos al precio por kilo) o pulsa **Volver** para regresar al catálogo. **Nunca hay dos modales a la vez:** el catálogo se oculta mientras se pesa y, al volver, reaparece tal como estaba (misma búsqueda y mismo scroll). \`onSelect\` recibe el producto y el peso. Los **envasados** (bandeja, tarrina, malla, bolsa…: arándanos en tarrina, kiwis en bandeja) **no aparecen**: tienen su propio código de barras y entran con la pistola o el buscador. La regla está en \`isSoldLoose\` (\`src/lib/ticket.ts\`), según el formato de Nutriinfo, porque su campo \`es_granel\` marca también envases de peso variable.
+**Es solo interfaz.** No carga el catálogo ni lee la báscula: muestra los \`products\` y el \`weight\` que recibe (\`SectionCatalogState\`) y avisa de lo que hace el cajero. Gestiona lo visual: qué sección está abierta, qué producto está en la báscula (\`weighing\`, que se puede controlar desde fuera) y cuántas piezas se eligen.
 
-**Origen de los datos:** por defecto, \`load\` es \`fetchSectionCatalog\`, que trae de [Nutriinfo](https://www.nutriinfo.es) los productos de la categoría de la sección (*Fruta*, *Verdura* y *Pan de horno*) a través de \`/api/products?category=\`. En Storybook se usa \`mockSectionCatalog\`.`,
+- **Al peso:** al elegir un producto, la báscula lo pesa y el cajero confirma con **Añadir al carrito** (entra en kilos al precio por kilo) o pulsa **Volver** para regresar al catálogo. **Volver a pesar** llama a \`onReweigh\`. \`onSelect\` recibe el producto y el peso.
+- **Nunca hay dos modales a la vez:** el catálogo se oculta mientras se pesa y, al volver, reaparece tal como estaba (misma búsqueda y mismo scroll).
+
+**En la app**, \`PosApp\` carga el catálogo de [Nutriinfo](https://www.nutriinfo.es) (\`useSectionCatalog\`, vía \`/api/products?category=\`), deja solo los productos sueltos (\`toSectionProducts\` en \`src/lib/ticket.ts\`: formato *Pieza*, *1/2 Pieza* o *Granel*, y el pan de horno suelto) y lee la báscula simulada (\`useScale\`). En estas stories, el catálogo y el peso (0,850 kg) son fijos.`,
       },
       story: { inline: false, iframeHeight: 820 },
     },
@@ -82,32 +103,44 @@ export const WeighAndAdd: Story = {
       await expect(args.onSelect).not.toHaveBeenCalled()
     })
 
-    await step("Pesar y añadir al carrito", async () => {
+    await step("Volver a pesar y añadir al carrito", async () => {
       await userEvent.click(
         await screen.findByRole("button", { name: /Manzana golden/ })
       )
-      const add = await screen.findByRole("button", {
-        name: "Añadir al carrito",
-      })
-      await waitFor(() => expect(add).toBeEnabled(), { timeout: 3000 })
-
-      // Volver a pesar repite la lectura: mientras pesa, no se puede añadir.
       await userEvent.click(
-        screen.getByRole("button", { name: "Volver a pesar" })
+        await screen.findByRole("button", { name: "Volver a pesar" })
       )
-      await expect(add).toBeDisabled()
-      await waitFor(() => expect(add).toBeEnabled(), { timeout: 3000 })
+      await expect(args.onReweigh).toHaveBeenCalledOnce()
+      const add = screen.getByRole("button", { name: "Añadir al carrito" })
+      await waitFor(() => expect(add).toBeEnabled())
       await userEvent.click(add)
 
       await expect(args.onSelect).toHaveBeenCalledWith(
         expect.objectContaining({ id: products.manzana.id, unit: "kg" }),
-        expect.toSatisfy((weight: number) => weight >= 0.5 && weight <= 1.5)
+        0.85
       )
     })
   },
 }
 
-/** Los envasados (arándanos en tarrina) no aparecen: tienen su propio código de barras. */
+/** Mientras la báscula se estabiliza (`weight` nulo), no se puede añadir. */
+export const Weighing: Story = {
+  args: { weight: null },
+  play: async ({ canvasElement }) => {
+    await userEvent.click(
+      within(canvasElement).getByRole("button", { name: /Frutería/ })
+    )
+    await userEvent.click(
+      await screen.findByRole("button", { name: /Manzana golden/ })
+    )
+    await expect(await screen.findByText("Pesando…")).toBeInTheDocument()
+    await expect(
+      screen.getByRole("button", { name: "Añadir al carrito" })
+    ).toBeDisabled()
+  },
+}
+
+/** Los envasados (arándanos en tarrina) no llegan al catálogo: tienen su propio código de barras. */
 export const OnlyLooseProducts: Story = {
   play: async ({ canvasElement }) => {
     await userEvent.click(
@@ -118,8 +151,19 @@ export const OnlyLooseProducts: Story = {
   },
 }
 
+/** Catálogo cargando. */
+export const Loading: Story = {
+  args: { products: [], isLoading: true, defaultSection: sections[0] },
+}
+
+/** El catálogo no se ha podido cargar. */
+export const LoadError: Story = {
+  args: { products: [], hasError: true, defaultSection: sections[0] },
+}
+
 /** Panadería: elegir un croissant, decir cuántos (3) y añadir. Sin báscula. */
 export const BakeryByPiece: Story = {
+  args: { products: sectionProducts("panaderia") },
   play: async ({ args, canvasElement }) => {
     await userEvent.click(
       within(canvasElement).getByRole("button", { name: /Panadería/ })

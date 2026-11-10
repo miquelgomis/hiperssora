@@ -3,7 +3,6 @@ import { fn } from "storybook/test"
 
 import { getItemCount, getTicketTotal } from "@/lib/ticket"
 import { products } from "@/mocks/products"
-import { mockSectionCatalog } from "@/mocks/search"
 import { ticketLines } from "@/mocks/tickets"
 
 import { CheckoutPanel } from "./checkout-panel"
@@ -16,7 +15,6 @@ const meta = {
     itemCount: getItemCount(ticketLines),
     bagProduct: products.bolsa,
     selectedLine: ticketLines[2],
-    loadSection: mockSectionCatalog,
     onAddProduct: fn(),
     onCharge: fn(),
     onPauseTicket: fn(),

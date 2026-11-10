@@ -1,13 +1,12 @@
-import type { ProductSearchFn } from "@/lib/product-api"
 import type { Product, TicketLine } from "@/types/pos"
 
-import { ProductSearch } from "./product-search"
+import { ProductSearch, type ProductSearchState } from "./product-search"
 import { TicketList } from "./ticket-list"
 
 export type TicketPanelProps = {
   lines: TicketLine[]
-  /** Búsqueda de productos. Por defecto, el catálogo real (Nutriinfo). */
-  search?: ProductSearchFn
+  /** Estado del buscador: texto, resultados, carga y error. */
+  search?: ProductSearchState
   selectedLineId?: string
   /** Producto elegido en el buscador. */
   onAddProduct?: (product: Product) => void
@@ -42,7 +41,7 @@ export function TicketPanel({
   return (
     <section aria-label="Ticket" className="flex h-full min-h-0 flex-col">
       <ProductSearch
-        search={search}
+        {...search}
         onSelect={onAddProduct}
         open={searchOpen}
         onOpenChange={onSearchOpenChange}

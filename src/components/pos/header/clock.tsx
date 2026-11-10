@@ -1,30 +1,27 @@
-"use client"
-
-import { useNow } from "@/hooks/use-now"
 import { formatDate, formatTime } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 export type ClockProps = {
-  /** Fecha fija a mostrar. Si se omite, muestra la hora actual y se actualiza sola. */
-  date?: Date
+  /**
+   * Fecha y hora a mostrar. Sin valor (p. ej., en el servidor, antes de saber la hora) se ve
+   * `--:--`. En la app la pone `PosApp`, que la actualiza cada minuto (`useNow`).
+   */
+  date?: Date | null
   className?: string
 }
 
-/** Hora y fecha actuales de la caja. */
+/** Hora y fecha de la caja. */
 export function Clock({ date, className }: ClockProps) {
-  const now = useNow()
-  const value = date ?? now
-
   return (
     <time
-      dateTime={value?.toISOString()}
+      dateTime={date?.toISOString()}
       className={cn("flex flex-col items-end leading-tight", className)}
     >
       <span className="text-2xl font-semibold tabular-nums">
-        {value ? formatTime(value) : "--:--"}
+        {date ? formatTime(date) : "--:--"}
       </span>
       <span className="text-xs text-muted-foreground first-letter:uppercase">
-        {value ? formatDate(value) : " "}
+        {date ? formatDate(date) : " "}
       </span>
     </time>
   )

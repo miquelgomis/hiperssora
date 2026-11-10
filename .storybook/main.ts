@@ -4,7 +4,12 @@ import remarkGfm from "remark-gfm"
 
 const config: StorybookConfig = {
   framework: "@storybook/nextjs-vite",
-  stories: ["./docs/**/*.mdx", "../src/components/**/*.stories.@(ts|tsx)"],
+  // Sistema de diseño (src/components) y, aparte, la aplicación que lo conecta (src/features).
+  stories: [
+    "./docs/**/*.mdx",
+    "../src/components/**/*.stories.@(ts|tsx)",
+    "../src/features/**/*.stories.@(ts|tsx)",
+  ],
   addons: [
     // remark-gfm: las páginas MDX (Introducción, Fundamentos) usan tablas de Markdown.
     {

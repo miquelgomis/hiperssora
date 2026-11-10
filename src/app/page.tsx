@@ -1,4 +1,4 @@
-import { PosApp } from "@/components/pos/layout"
+import { PosApp } from "@/features/pos-app"
 import { cashier } from "@/config/auth"
 import { bagProduct } from "@/config/products"
 

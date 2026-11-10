@@ -12,6 +12,7 @@ const meta = {
   args: {
     product: products.manzana,
     weight: 1.234,
+    mockupNote: "báscula simulada con un peso aleatorio entre 0,5 y 1,5 kg",
     onReweigh: fn(),
     onBack: fn(),
     onConfirm: fn(),
@@ -32,7 +33,7 @@ const meta = {
 
 **Teclado:** mientras pesa, \`Enter\` no hace nada (para que un \`Enter\` impaciente no pulse *Volver*); cuando el peso se estabiliza, el foco pasa a *Añadir al carrito*, así que \`Enter\` añade; \`←\` \`→\` recorren los botones y \`Esc\` vuelve al catálogo.
 
-**Maqueta:** no hay báscula real. \`readScaleWeight\` (\`src/lib/scale.ts\`) devuelve un peso aleatorio entre 0,5 y 1,5 kg tras 1,2 s (hook \`useScale\`). Es el único punto que cambiará al conectar una báscula de verdad.
+**Es solo interfaz, no lee la báscula.** Muestra el \`weight\` que recibe y avisa con \`onReweigh\`. En la app, \`PosApp\` lee la báscula con el hook \`useScale\`. En la maqueta es simulada (\`src/lib/scale.ts\`): da un peso aleatorio entre 0,5 y 1,5 kg tras 1,2 s, y la app lo avisa con \`mockupNote\`. Es el único punto que cambiará al conectar una báscula de verdad.
 
 El producto llega en su versión al peso (\`toWeighedProduct\`): unidad \`kg\`, precio por kilo de Nutriinfo y **sin el formato en el nombre** (\`Calabacín blanco · Pieza\` → \`Calabacín blanco\`), aunque en tienda se venda por pieza.`,
       },

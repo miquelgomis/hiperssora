@@ -40,12 +40,15 @@ también como tests.
 ```
 src/
 ├── app/            # Next.js: la pantalla del TPV y api/products (proxy a Nutriinfo)
-├── components/
+├── components/     # Sistema de diseño: solo interfaz (props → interfaz → callbacks)
 │   ├── ui/         # Primitivas de shadcn/ui
 │   ├── common/     # Componentes reutilizables (Modal, ConfirmDialog, SearchField…)
+│   ├── hooks/      # Hooks de interfaz (useControllableState)
 │   └── pos/        # TPV, por zonas: layout, lock, header, ticket, checkout, sections, payment, shortcuts
+├── features/       # Aplicación: conecta los componentes con el estado, los datos y el hardware
+│   └── pos-app/    # PosApp
 ├── config/         # Atajos de teclado, PIN y secciones
-├── hooks/          # Estado del ticket, búsqueda, pistola lectora, báscula, persistencia…
+├── hooks/          # Estado del ticket, búsqueda, pistola lectora, báscula, persistencia… (solo features)
 ├── lib/            # Funciones puras: formato, totales, búsqueda, cliente de Nutriinfo
 ├── mocks/          # Datos de ejemplo para las stories
 └── types/          # Tipos del dominio

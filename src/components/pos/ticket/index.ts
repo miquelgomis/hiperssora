@@ -2,7 +2,11 @@ export {
   AgeVerificationDialog,
   type AgeVerificationDialogProps,
 } from "./age-verification-dialog"
-export { ProductSearch, type ProductSearchProps } from "./product-search"
+export {
+  ProductSearch,
+  type ProductSearchProps,
+  type ProductSearchState,
+} from "./product-search"
 export {
   ProductNotFoundDialog,
   type ProductNotFoundDialogProps,

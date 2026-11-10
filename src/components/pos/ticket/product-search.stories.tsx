@@ -1,27 +1,31 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite"
 import { expect, fn, screen, userEvent, waitFor, within } from "storybook/test"
 
-import { products } from "@/mocks/products"
-import { failingSearch, mockSearch } from "@/mocks/search"
+import { searchProducts } from "@/lib/search"
+import { isSoldLoose } from "@/lib/ticket"
+import { catalog, products } from "@/mocks/products"
 
 import { ProductSearch } from "./product-search"
+
+/** Resultados de ejemplo para «an», sin los productos sueltos (como en la app). */
+const results = searchProducts(catalog, "an", 8).filter(
+  (product) => !isSoldLoose(product)
+)
 
 const meta = {
   title: "TPV/Ticket/Buscador/ProductSearch",
   component: ProductSearch,
-  args: { search: mockSearch, onSelect: fn() },
-  argTypes: { search: { control: false } },
+  args: { results, onQueryChange: fn(), onSelect: fn() },
+  argTypes: { results: { control: false } },
   parameters: {
     layout: "padded",
     docs: {
       description: {
-        component: `Buscador completo: \`SearchTrigger\` en la pantalla y \`ProductSearchDialog\` al recibir el foco. Gestiona el estado (abierto, texto y resultado activo) con el hook \`useProductSearch\`, que espera 250 ms a que el cajero deje de escribir antes de buscar.
+        component: `Buscador completo: \`SearchTrigger\` en la pantalla y \`ProductSearchDialog\` al recibir el foco.
 
-**Origen de los datos:** por defecto, \`search\` es \`fetchProducts\`, que consulta el catálogo real de [Nutriinfo](https://www.nutriinfo.es) a través de \`/api/products\`, un route handler de Next.js que guarda la API key en el servidor. Busca por nombre o por **código EAN, completo o parcial** (con 4 o más dígitos encuentra los EAN que los contienen). Un EAN completo se busca primero exacto. En Storybook no hay servidor, así que se usa \`mockSearch\`, que filtra el catálogo de ejemplo.
+**Es solo interfaz, no busca.** Avisa de lo que se escribe con \`onQueryChange\` y muestra lo que recibe: \`results\`, \`isLoading\` y \`hasError\` (\`ProductSearchState\`). Solo gestiona lo visual: el modal abierto, el texto y el resultado activo. Al elegir un producto llama a \`onSelect\`, cierra el modal y se vacía.
 
-Al elegir un producto llama a \`onSelect\`, cierra el modal y se vacía.
-
-**No muestra productos sueltos** (formato *Pieza*, *1/2 Pieza* o *Granel*: kiwi verde, banana…), que se eligen en Frutería, Verdulería o Panadería. Los envasados, con su propio código de barras, sí salen.`,
+En la app, la búsqueda la hace \`PosApp\` con el hook \`useProductSearch\` (\`src/hooks\`): espera 250 ms a que el cajero deje de escribir, consulta [Nutriinfo](https://www.nutriinfo.es) a través de \`/api/products\` y quita los productos sueltos, que se eligen en Frutería, Verdulería o Panadería. En estas stories, los resultados son fijos.`,
       },
       story: { inline: false, iframeHeight: 760 },
     },
@@ -51,7 +55,7 @@ export const OpensOnFocus: Story = {
   },
 }
 
-/** Escribir, esperar los resultados, bajar con ↓ y añadir con Enter. */
+/** Escribir (avisa con `onQueryChange`), bajar con ↓ y añadir con Enter. */
 export const SearchAndSelect: Story = {
   play: async ({ args, canvasElement }) => {
     await userEvent.click(within(canvasElement).getByRole("searchbox"))
@@ -60,21 +64,22 @@ export const SearchAndSelect: Story = {
     })
     await waitFor(() => expect(input).toHaveFocus())
     await userEvent.type(input, "an")
+    await expect(args.onQueryChange).toHaveBeenLastCalledWith("an")
     await screen.findByRole("option", { name: /Arándanos/ })
     await userEvent.keyboard("{ArrowDown}{Enter}")
     await expect(args.onSelect).toHaveBeenCalledWith(products.arandanos)
   },
 }
 
+/** Buscando: se mantienen los resultados anteriores mientras llega la respuesta. */
+export const Loading: Story = {
+  args: { defaultOpen: true, query: "an", isLoading: true },
+}
+
 /** Si el catálogo no responde, se muestra el estado de error. */
 export const SearchError: Story = {
-  args: { search: failingSearch },
-  play: async ({ canvasElement }) => {
-    await userEvent.click(within(canvasElement).getByRole("searchbox"))
-    await userEvent.type(
-      await screen.findByRole("searchbox", { name: "Buscar producto" }),
-      "leche"
-    )
+  args: { defaultOpen: true, query: "leche", results: [], hasError: true },
+  play: async () => {
     await expect(
       await screen.findByText("No se ha podido buscar")
     ).toBeInTheDocument()
